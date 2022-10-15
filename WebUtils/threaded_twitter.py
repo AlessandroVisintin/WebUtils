@@ -94,8 +94,10 @@ def get_followers_ids(auth:dict, context:str,
 			queue_out.put(data[0])
 			end.wait(60)
 		except IndexError:
+			print(f'IndexError {i[0]}')
 			queue_in.put(i)
 		except tweepy.NotFound:
+			print(f'NotFound {i[0]}')
 			queue_in.put(i)
 			end.wait(60)
 		except tweepy.TooManyRequests:
@@ -141,8 +143,10 @@ def get_followers(auth:dict, context:str,
 			queue_out.put(data[0])
 			end.wait(60)
 		except IndexError:
+			print(f'IndexError {i[0]}')
 			queue_in.put(i)
 		except tweepy.NotFound:
+			print(f'NotFound {i[0]}')
 			queue_in.put(i)
 			end.wait(60)
 		except tweepy.TooManyRequests:
@@ -168,8 +172,9 @@ def lookup_users(auth:dict, context:str,
 		auth : see apiv11() for reference.
 		context : see apiv11() for reference.
 		end : exit flag.
-		queue_in : threaded input. Expects list(userid,...).
-			Max len of list = 100
+		queue_in : threaded input. 
+			Expects either list(userid,...) or list(username,...).
+			Userids are integers, usernames are strings. Max len of list = 100
 		queue_out : threaded output.
 
 	"""
@@ -180,10 +185,15 @@ def lookup_users(auth:dict, context:str,
 		if i is None:
 			break
 		try:
-			data = api.lookup_users(user_id=i)
-			queue_out.put(data)
+			if isinstance(i[0], str):
+				data = api.lookup_users(screen_name=i)
+				queue_out.put(data)
+			else:
+				data = api.lookup_users(user_id=i)
+				queue_out.put(data)
 			end.wait(1)
 		except tweepy.NotFound:
+			print(f'NotFound {i[0]}')
 			queue_in.put(i)
 			end.wait(60)
 		except tweepy.TooManyRequests:
