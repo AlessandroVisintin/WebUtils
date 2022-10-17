@@ -198,6 +198,9 @@ def lookup_users(auth:dict, context:str,
 				mid = int(len(i) / 2)
 				queue_in.put(i[:mid])
 				queue_in.put(i[mid:])
+			else:
+				queue_out.put(None)
+				
 			end.wait(60)
 		except tweepy.TooManyRequests:
 			print(f'TooManyRequests {i[0]}')
