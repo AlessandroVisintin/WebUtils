@@ -110,6 +110,10 @@ def get_followers_ids(auth:dict, context:str,
 			print(f'ServerError {i[0]}')
 			queue_in.put(i)
 			end.wait(60)
+		except tweepy.TweepyException as e: 
+			print(f'Tweepy error {e}')
+			queue_in.put(i)
+			end.wait(60)
 
 
 def get_followers(auth:dict, context:str, 
@@ -157,6 +161,10 @@ def get_followers(auth:dict, context:str,
 			end.wait(reset - time.time())
 		except tweepy.TwitterServerError:
 			print(f'ServerError {i[0]}')
+			queue_in.put(i)
+			end.wait(60)
+		except tweepy.TweepyException as e: 
+			print(f'Tweepy error {e}')
 			queue_in.put(i)
 			end.wait(60)
 
@@ -212,6 +220,10 @@ def lookup_users(auth:dict, context:str,
 			print(f'ServerError {i[0]}')
 			queue_in.put(i)
 			end.wait(60)
+		except tweepy.TweepyException as e: 
+			print(f'Tweepy error {e}')
+			queue_in.put(i)
+			end.wait(60)
 
 
 def get_users_followers(auth:dict, context:str, 
@@ -260,5 +272,8 @@ def get_users_followers(auth:dict, context:str,
 			print('Server: ', i)
 			queue_in.put(i)
 			end.wait(60)
-
+		except tweepy.TweepyException as e: 
+			print(f'Tweepy error {e}')
+			queue_in.put(i)
+			end.wait(60)
 	
