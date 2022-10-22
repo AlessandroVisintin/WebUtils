@@ -116,6 +116,59 @@ def get_followers_ids(auth:dict, context:str,
 			end.wait(60)
 
 
+def get_friends_ids(auth:dict, context:str, 
+						end:Event, queue_in:Queue, queue_out:Queue) -> None:
+	"""
+	
+	Worker for collecting friends IDs.
+	Thread is terminated by sending None and setting end event. 
+	
+	Args:
+		auth : see apiv11() for reference.
+		context : see apiv11() for reference.
+		end : exit flag.
+		queue_in : threaded input. Expects tuple(username, cursor, count).
+			Min count = 201, max count = 5000
+		queue_out : threaded output.
+
+	"""
+	
+	api = apiv11(auth, context)
+	while not end.is_set():
+		i =  queue_in.get()
+		if i is None:
+			break
+		try:
+			if i[2] <= 200 or i[2] > 5000:
+				queue_in.put(i)
+				continue
+			data = api.get_follower_ids(
+				screen_name=i[0], cursor=i[1], count=i[2])
+			queue_out.put(data[0])
+			end.wait(60)
+		except IndexError:
+			print(f'IndexError {i[0]}')
+			queue_in.put(i)
+		except tweepy.NotFound:
+			print(f'NotFound {i[0]}')
+			queue_in.put(i)
+			end.wait(60)
+		except tweepy.TooManyRequests:
+			print(f'TooManyRequests {i[0]}')
+			queue_in.put(i)
+			reset = (api.rate_limit_status()
+				['resources']['friends']['/friends/ids']['reset'])
+			end.wait(reset - time.time())
+		except tweepy.TwitterServerError:
+			print(f'ServerError {i[0]}')
+			queue_in.put(i)
+			end.wait(60)
+		except tweepy.TweepyException as e: 
+			print(f'Tweepy error {e}')
+			queue_in.put(i)
+			end.wait(60)
+
+
 def get_followers(auth:dict, context:str, 
 						end:Event, queue_in:Queue, queue_out:Queue) -> None:
 	"""
@@ -158,6 +211,59 @@ def get_followers(auth:dict, context:str,
 			queue_in.put(i)
 			reset = (api.rate_limit_status()
 				['resources']['followers']['/followers/list']['reset'])
+			end.wait(reset - time.time())
+		except tweepy.TwitterServerError:
+			print(f'ServerError {i[0]}')
+			queue_in.put(i)
+			end.wait(60)
+		except tweepy.TweepyException as e: 
+			print(f'Tweepy error {e}')
+			queue_in.put(i)
+			end.wait(60)
+
+
+def get_friends(auth:dict, context:str, 
+						end:Event, queue_in:Queue, queue_out:Queue) -> None:
+	"""
+	
+	Worker for collecting friends user objects.
+	Thread is terminated by sending None and setting end event. 
+	
+	Args:
+		auth : see apiv11() for reference.
+		context : see apiv11() for reference.
+		end : exit flag.
+		queue_in : threaded input. Expects tuple(username, cursor, count).
+			Max count = 200
+		queue_out : threaded output.
+
+	"""
+	
+	api = apiv11(auth, context)
+	while not end.is_set():
+		i =  queue_in.get()
+		if i is None:
+			break
+		try:
+			if i[2] <= 0  or i[2] > 200:
+				queue_in.put(i)
+				continue
+			data = api.get_followers(
+				screen_name=i[0], cursor=i[1], count=i[2])
+			queue_out.put(data[0])
+			end.wait(60)
+		except IndexError:
+			print(f'IndexError {i[0]}')
+			queue_in.put(i)
+		except tweepy.NotFound:
+			print(f'NotFound {i[0]}')
+			queue_in.put(i)
+			end.wait(60)
+		except tweepy.TooManyRequests:
+			print(f'TooManyRequests {i[0]}')
+			queue_in.put(i)
+			reset = (api.rate_limit_status()
+				['resources']['friends']['/friends/list']['reset'])
 			end.wait(reset - time.time())
 		except tweepy.TwitterServerError:
 			print(f'ServerError {i[0]}')
