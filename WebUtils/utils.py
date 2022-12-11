@@ -2,7 +2,6 @@ import curlparser
 from bs4 import BeautifulSoup
 from httpx import Client, ReadTimeout
 
-
 import json
 from typing import Any
 
@@ -12,7 +11,6 @@ from WebUtils.StoppableSleep import StoppableSleep
 
 def get(url:str, **kwargs) -> tuple[bool,int,Any]:
 	"""
-		
 	Get online resource. Supports http2 request.
 		
 	Args:
@@ -31,9 +29,7 @@ def get(url:str, **kwargs) -> tuple[bool,int,Any]:
 			The parsed datatype depends on the provided ctype.
 			JSON -> JSON object
 			HTML -> BeatifulSoup object
-		
 	"""
-	
 	try:
 		headers = kwargs['headers']
 	except KeyError:
@@ -54,6 +50,65 @@ def get(url:str, **kwargs) -> tuple[bool,int,Any]:
 	try:
 		with Client(http2=http2, headers=headers, cookies=cookies) as c:
 			r = c.get(url, params=params)
+	except ReadTimeout:
+		return False, (408,None), None
+
+	state = (r.status_code, r.headers.raw)
+	try:
+		if kwargs['ctype'] == 'json':
+			try:
+				return True, state, json.loads(r.text)
+			except json.JSONDecodeError:
+				return False, state, {}
+		elif kwargs['ctype'] == 'html':
+			return True, state, BeautifulSoup(r.text, 'lxml')
+		else:
+			return True, state, r.text
+	except KeyError:
+		return True, state, r.text
+
+
+def post(url:str, **kwargs) -> tuple[bool,int,Any]:
+	"""
+	Post to online server. Supports http2 request.
+		
+	Args:
+		url : resource address
+		**kwargs :
+			ctype (str) : expected content type. Supports 'json', 'html'.
+				Defaults to plain text
+			cookies (dict) : cookies to append to the request.
+			headers (dict) : headers to append to the request.
+			json (dict) : data to append to the request.
+			http2 (bool) : enable HTTP2 request. Default to False.
+
+	Returns:
+		tuple : (
+			parsed (bool), (status code,headers), parsed data)
+			The parsed datatype depends on the provided ctype.
+			JSON -> JSON object
+			HTML -> BeatifulSoup object	
+	"""
+	try:
+		headers = kwargs['headers']
+	except KeyError:
+		headers = None
+	try:
+		cookies = kwargs['cookies']
+	except KeyError:
+		cookies = None
+	try:
+		data = kwargs['json']
+	except KeyError:
+		data = None
+	try:
+		http2 = kwargs['http2']
+	except KeyError:
+		http2 = False
+
+	try:
+		with Client(http2=http2, headers=headers, cookies=cookies) as c:
+			r = c.post(url, json=data)
 	except ReadTimeout:
 		return False, (408,None), None
 
@@ -123,12 +178,10 @@ def rget(url:str, **kwargs) -> Any:
 					kwargs['sleep'] += kwargs['sleep']
 		except KeyError:
 			pass 
-				
 
 
-def parse_curl_headers(**kwargs) -> dict:
+def parse_curl(**kwargs) -> dict:
 	"""
-	
 	Parse cURL headers.
 	cURL command can be passed either as string or file.
 	The ouput can be optionally stored.
@@ -143,9 +196,7 @@ def parse_curl_headers(**kwargs) -> dict:
 	Returns:
 		parsed curl command.
 		{'headers' : dict(headers) [, cookies : dict(cookies)]}
-	
 	"""
-	
 	curl = ''
 	if 'curl' in kwargs:
 		curl = kwargs['curl']
@@ -154,19 +205,29 @@ def parse_curl_headers(**kwargs) -> dict:
 			curl = f.read()
 	curl = curl.replace('--compressed', '')
 	res = curlparser.parse(curl)
+	
 	out = {
-			'headers' : {str(k).lower() : str(v).strip()
-				for k,v in res.header.items()}
+		'url' : res.url,
+		'method' : res.method,
+		'headers' : {
+			str(k).lower() : str(v).strip() for k,v in res.header.items()},
+		'cookies' : {},
+		'data' : None
 		}
+
 	if 'cookie' in out['headers']:
-		cookies = {}
 		for c in out['headers']['cookie'].split(';'):
 			k,v = c.split('=', 1)
-			cookies[k.strip()] = v.strip()
+			out['cookies'][k.strip()] = v.strip()
 		del out['headers']['cookie']
-		out['cookies'] = cookies
+	
+	if res.data is not None:
+		d = res.data[1:] if res.data.startswith('$') else res.data
+		out['data'] = json.loads(d)
+
 	try:
 		dump(out, kwargs['out_path'])
 	except KeyError:
 		pass
+
 	return out
