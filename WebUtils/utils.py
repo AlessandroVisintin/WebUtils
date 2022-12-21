@@ -160,7 +160,7 @@ def rreq(url:str, req:str, **kwargs) -> Any:
 	while True:
 		parsed, state, data = get(url, **kwargs)	if req == 'get' else post(url, **kwargs)			
 		if parsed and state[0] == 200:
-			return state[1], data
+			return True, state[1], data
 		
 		if verbose: print(state, data)
 		
