@@ -69,6 +69,9 @@ for username in USERNAMES:
 					if creator[3] == 0: # not a member
 						continue
 					stats['tried'] += 1
+					
+					time.sleep(randint(int(rate-sigma/2), int(rate+sigma/2)))
+					
 					up = clap_mutation(
 						f'{CFG}/ClapMutation.curl',
 						url=post[13],
@@ -87,13 +90,13 @@ for username in USERNAMES:
 							print('Waiting', START + 86400 - cur)
 							time.sleep(START + 86400 - cur)
 						else:
-							time.sleep(randint(rate-sigma, rate+sigma))
+							time.sleep(randint(int(rate-sigma/2), int(rate+sigma/2)))
 					else:
 						if cur < START and cur >= END:
 							print('Waiting', START - cur)
 							time.sleep(START - cur)
 						else:
-							time.sleep(randint(rate-sigma, rate+sigma))
+							time.sleep(randint(int(rate-sigma/2), int(rate+sigma/2)))
 				
 				if to2 is None:
 					break

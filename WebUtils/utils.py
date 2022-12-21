@@ -1,6 +1,6 @@
 import curlparser
 from bs4 import BeautifulSoup
-from httpx import Client, ReadTimeout
+from httpx import Client, ReadTimeout, ConnectError
 
 import json
 from typing import Any
@@ -50,7 +50,7 @@ def get(url:str, **kwargs) -> tuple[bool,int,Any]:
 	try:
 		with Client(http2=http2, headers=headers, cookies=cookies) as c:
 			r = c.get(url, params=params)
-	except ReadTimeout:
+	except (ReadTimeout, ConnectError):
 		return False, (408,None), None
 
 	state = (r.status_code, r.headers.raw)
@@ -109,7 +109,7 @@ def post(url:str, **kwargs) -> tuple[bool,int,Any]:
 	try:
 		with Client(http2=http2, headers=headers, cookies=cookies) as c:
 			r = c.post(url, json=data)
-	except ReadTimeout:
+	except (ReadTimeout, ConnectError):
 		return False, (408,None), None
 
 	state = (r.status_code, r.headers.raw)
@@ -127,20 +127,21 @@ def post(url:str, **kwargs) -> tuple[bool,int,Any]:
 		return True, state, r.text
 
 
-def rget(url:str, **kwargs) -> Any:
+def rreq(url:str, req:str, **kwargs) -> Any:
 	"""
 		
 	Retry request until successfully performed.
 	Defaults to infinite retries.
 		
 	Args:
-		url : see get() method
+		url : see get()/post() method
+		req : type of request [get,post]
 		**kwargs :
 			verbose (bool) : print error if True. Defaults to False.
 			max_retries (int) : max number of retries
 			sleep (int) : delay between two consecutive tries
 			cumul (bool) : sleep time doubles at each cycle. 
-			See get() method for additional kwargs.
+			See get()/post method for additional kwargs.
 		
 	Returns:
 		Parsed data.
@@ -157,7 +158,7 @@ def rget(url:str, **kwargs) -> Any:
 		verbose = False
 		
 	while True:
-		parsed, state, data = get(url, **kwargs)				
+		parsed, state, data = get(url, **kwargs)	if req == 'get' else post(url, **kwargs)			
 		if parsed and state[0] == 200:
 			return state[1], data
 		

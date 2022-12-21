@@ -96,7 +96,7 @@ def get_follower_ids(auth:dict, context:str, qin:Queue, qout:Queue) -> None:
 		try:
 			data = (
 				api.get_follower_ids(screen_name=i[0], cursor=i[1], count=i[2])
-				if isinstance(i[1], str) else
+				if isinstance(i[0], str) else
 				api.get_follower_ids(user_id=i[0], cursor=i[1], count=i[2])
 				)
 			qout.put(data[0])
@@ -147,7 +147,7 @@ def get_friend_ids(auth:dict, context:str, qin:Queue, qout:Queue) -> None:
 		try:
 			data = (
 				api.get_friend_ids(screen_name=i[0], cursor=i[1], count=i[2])
-				if isinstance(i[1], str) else
+				if isinstance(i[0], str) else
 				api.get_friend_ids(user_id=i[0], cursor=i[1], count=i[2])
 				)
 			qout.put(data[0])
@@ -198,7 +198,7 @@ def get_followers(auth:dict, context:str, qin:Queue, qout:Queue) -> None:
 		try:
 			data = (
 				api.get_followers(screen_name=i[0], cursor=i[1], count=i[2])
-				if isinstance(i[1], str) else
+				if isinstance(i[0], str) else
 				api.get_followers(user_id=i[0], cursor=i[1], count=i[2])
 				)
 			qout.put(data[0])
@@ -249,7 +249,7 @@ def get_friends(auth:dict, context:str, qin:Queue, qout:Queue) -> None:
 		try:
 			data = (
 				api.get_friends(screen_name=i[0], cursor=i[1], count=i[2])
-				if isinstance(i[1], str) else
+				if isinstance(i[0], str) else
 				api.get_friends(user_id=i[0], cursor=i[1], count=i[2])
 				)
 			qout.put(data[0])

@@ -1,5 +1,5 @@
 from WebUtils.utils import parse_curl
-from WebUtils.utils import post
+from WebUtils.utils import rreq
 
 from urllib.parse import urlparse
 
@@ -97,13 +97,15 @@ def topic_feed_query(cfg:str, tag_slug:str, to:int=None):
 	cfg['data'][0]['variables']['tagSlug'] = tag_slug
 	cfg['data'][0]['variables']['paging']['to'] = to
 	
-	_, _, data = post(
+	_, _, data = rreq(
 		cfg['url'],
 		ctype='json',
 		cookies=cfg['cookies'],
 		headers=cfg['headers'],
 		json=cfg['data'],
-		http2=True
+		http2=True,
+		max_retries=5,
+		sleep=60
 		)
 	
 	return None, data
@@ -139,13 +141,15 @@ def paged_threaded_post_responses_query(cfg:str, url:str, to:int=None):
 	cfg['data'][0]['variables']['postResponsesPaging']['to'] = to
 	cfg['data'][0]['query'] = cfg['data'][0]['query'].replace('\\n','\n') 
 
-	_, _, data = post(
+	_, _, data = rreq(
 		cfg['url'],
 		ctype='json',
 		cookies=cfg['cookies'],
 		headers=cfg['headers'],
 		json=cfg['data'],
-		http2=True
+		http2=True,
+		max_retries=5,
+		sleep=60
 		)
 	
 	aid = data[0]['data']['post']['id']
@@ -172,13 +176,15 @@ def clap_mutation(cfg:str, url:str, target_id:str, num_claps:int=1) -> int:
 	cfg['data'][0]['variables']['numClaps'] = num_claps
 	cfg['data'][0]['query'] = cfg['data'][0]['query'].replace('\\n','\n')
 
-	_, _, data = post(
+	_, _, data = rreq(
 		cfg['url'],
 		ctype='json',
 		cookies=cfg['cookies'],
 		headers=cfg['headers'],
 		json=cfg['data'],
-		http2=True
+		http2=True,
+		max_retries=5,
+		sleep=60
 		)
 
 	data = data[0]['data']['clap']
@@ -195,13 +201,15 @@ def user_profile_query(cfg:str, username:str, homepagePostsFrom:str=None):
 	cfg['data'][0]['variables']['username'] = username
 	cfg['data'][0]['query'] = cfg['data'][0]['query'].replace('\\n','\n')
 	
-	_, _, data = post(
+	_, _, data = rreq(
 		cfg['url'],
 		ctype='json',
 		cookies=cfg['cookies'],
 		headers=cfg['headers'],
 		json=cfg['data'],
-		http2=True
+		http2=True,
+		max_retries=5,
+		sleep=60
 		)
 	
 	data = data[0]['data']['userResult']
