@@ -99,6 +99,7 @@ def topic_feed_query(cfg:str, tag_slug:str, to:int=None):
 	
 	_, _, data = rreq(
 		cfg['url'],
+		'post',
 		ctype='json',
 		cookies=cfg['cookies'],
 		headers=cfg['headers'],
@@ -143,6 +144,7 @@ def paged_threaded_post_responses_query(cfg:str, url:str, to:int=None):
 
 	_, _, data = rreq(
 		cfg['url'],
+		'post',
 		ctype='json',
 		cookies=cfg['cookies'],
 		headers=cfg['headers'],
@@ -178,6 +180,7 @@ def clap_mutation(cfg:str, url:str, target_id:str, num_claps:int=1) -> int:
 
 	_, _, data = rreq(
 		cfg['url'],
+		'post',
 		ctype='json',
 		cookies=cfg['cookies'],
 		headers=cfg['headers'],
@@ -203,6 +206,7 @@ def user_profile_query(cfg:str, username:str, homepagePostsFrom:str=None):
 	
 	_, _, data = rreq(
 		cfg['url'],
+		'post',
 		ctype='json',
 		cookies=cfg['cookies'],
 		headers=cfg['headers'],
