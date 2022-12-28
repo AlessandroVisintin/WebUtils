@@ -19,7 +19,8 @@ START = dct['start']
 END = dct['end']
 
 rate = int((END - START) / CLAPS)
-sigma = int(rate * 0.1)
+slow = int((rate - int(rate * 0.1)) / 2)
+sup = int((rate + int(rate * 0.1)) / 2)
 stats = {	'claps' : 0, 'tried' : 0, 'visited' : 0, 'total' : 0}
 
 db = SQLite(f'{OUT}/PinterestAPI.db', config=f'{CFG}/PinterestAPI.yaml')
@@ -70,7 +71,7 @@ for username in USERNAMES:
 						continue
 					stats['tried'] += 1
 					
-					time.sleep(randint(int(rate-sigma/2), int(rate+sigma/2)))
+					time.sleep(randint(slow, sup))
 					
 					up = clap_mutation(
 						f'{CFG}/ClapMutation.curl',
@@ -90,13 +91,13 @@ for username in USERNAMES:
 							print('Waiting', START + 86400 - cur)
 							time.sleep(START + 86400 - cur)
 						else:
-							time.sleep(randint(int(rate-sigma/2), int(rate+sigma/2)))
+							time.sleep(randint(slow, sup))
 					else:
 						if cur < START and cur >= END:
 							print('Waiting', START - cur)
 							time.sleep(START - cur)
 						else:
-							time.sleep(randint(int(rate-sigma/2), int(rate+sigma/2)))
+							time.sleep(randint(slow, sup))
 				
 				if to2 is None:
 					break

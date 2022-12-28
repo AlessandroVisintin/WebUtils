@@ -1,8 +1,72 @@
-import tweepy
+from JSONWrap.utils import load
 
+import tweepy
 import time
 from queue import Queue
-from threading import Event
+from threading import Thread
+
+
+class ThreadedTwitter:
+	"""
+	Easy instantiation of threaded Twitter APIs.
+	"""
+	
+	
+	def __init__(self, credentials_path:str) -> None:
+		"""
+		Args:
+			credentials_path : path to credentials JSON/YAML. 
+		"""
+		
+		self.apis = {
+			'get_friend_ids' : 
+				[get_friend_ids, Queue(), Queue(), []],
+			'get_friends': 
+				[get_friends, Queue(), Queue(), []],
+			'get_followers' : 
+				[get_followers, Queue(), Queue(), []],
+			'get_follower_ids': 
+				[get_follower_ids, Queue(), Queue(), []],
+			'lookup_users':
+				[lookup_users, Queue(), Queue(), []],
+			}
+		for name, k in load(credentials_path).items():
+			for func, v in self.apis.items():
+				t = Thread(target=v[0], args=(k, 'user', v[1], v[2]))
+				t.start()
+				v[3].append(t)
+	
+				
+	def __del__(self) -> None:
+		"""
+		Clean before closing.
+		"""
+		for func, v in self.apis.items(): # close threads
+			for _ in v[3]:
+				v[1].put(None)
+			for t in v[3]:
+				t.join()
+	
+	
+	def put(self, **kwargs) -> None:
+		"""
+		Send input to Twitter threads.
+		Args:
+			**kwargs:
+				[thread name] : tuple with input values for specific thread.
+		"""
+		for k,v in kwargs.items():
+			self.apis[k][1].put(v)
+	
+	
+	def get(self, *args) -> list:
+		"""
+		Receive output from Twitter threads.
+		Args:
+			*args: variable number of thread names to receive their output.
+				
+		"""
+		return [self.apis[x][2].get() for x in args]
 
 
 def apiv11(cred:dict, context:str) -> tweepy.API:
