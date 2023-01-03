@@ -105,8 +105,7 @@ def topic_feed_query(cfg:str, tag_slug:str, to:int=None):
 		headers=cfg['headers'],
 		json=cfg['data'],
 		http2=True,
-		max_retries=5,
-		sleep=60
+		sleep=120
 		)
 	
 	return None, data
@@ -150,8 +149,7 @@ def paged_threaded_post_responses_query(cfg:str, url:str, to:int=None):
 		headers=cfg['headers'],
 		json=cfg['data'],
 		http2=True,
-		max_retries=5,
-		sleep=60
+		sleep=120
 		)
 	
 	aid = data[0]['data']['post']['id']
@@ -186,8 +184,7 @@ def clap_mutation(cfg:str, url:str, target_id:str, num_claps:int=1) -> int:
 		headers=cfg['headers'],
 		json=cfg['data'],
 		http2=True,
-		max_retries=5,
-		sleep=60
+		sleep=120
 		)
 
 	data = data[0]['data']['clap']
@@ -212,8 +209,7 @@ def user_profile_query(cfg:str, username:str, homepagePostsFrom:str=None):
 		headers=cfg['headers'],
 		json=cfg['data'],
 		http2=True,
-		max_retries=5,
-		sleep=60
+		sleep=120
 		)
 	
 	data = data[0]['data']['userResult']
